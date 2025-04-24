@@ -69,8 +69,6 @@ Visit: http://127.0.0.1:5000
 - `index.html`: Landing page with form to shorten a URL
 - `stats.html`: Displays analytics for a shortened URL
 
-### `static/style.css`
-- Custom CSS for styling the app
 
 ---
 
@@ -89,6 +87,64 @@ Visit: http://127.0.0.1:5000
 - For scalability, replace SQLite with PostgreSQL and add NGINX + Certbot for HTTPS.
 
 ---
+
+## 🚀 Deployment Guide (AWS EC2)
+
+This app is deployed on an AWS EC2 instance using the free tier. Here's how to do it:
+
+### 1. Launch EC2 Instance
+- Use Ubuntu or Amazon Linux 2 (free tier eligible)
+- Allow ports 22 (SSH), 80 (HTTP) in the security group
+
+### 2. Connect via SSH
+```bash
+ssh -i "your-key.pem" ec2-user@your-public-ip
+
+### 3. Install Required Packages
+- sudo yum update -y        
+- sudo yum install git python3-pip nginx
+
+### 4. Clone Your Repo
+- git clone https://github.com/yourusername/flask-url-shortener.git
+
+- cd flask-url-shortener
+
+### 5. Set Up Virtual Environment
+- python3 -m venv venv
+- source venv/bin/activate
+- pip install -r requirements.txt
+
+### 6. Run with Gunicorn
+- gunicorn -w 3 -b 127.0.0.1:8000 run:app
+
+### 7. Configure systemd Service
+- Create /etc/systemd/system/flaskapp.service:
+
+[Unit]
+Description=Gunicorn instance to serve Flask app
+After=network.target
+
+[Service]
+User=ec2-user
+Group=nginx
+WorkingDirectory=/home/ec2-user/flask-url-shortener
+Environment="PATH=/home/ec2-user/flask-url-shortener/venv/bin"
+ExecStart=/home/ec2-user/flask-url-shortener/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 run:app
+
+[Install]
+WantedBy=multi-user.target
+
+Enable and start the service:
+
+sudo systemctl daemon-reexec
+sudo systemctl start flaskapp
+sudo systemctl enable flaskapp
+
+
+ 
+
+
+
 
 
 
